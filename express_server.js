@@ -33,7 +33,6 @@ app.get("/urls", (req, res) => {
 });
 
 
-
 app.get("/urls/:id", (req, res) => {
   let data = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], };
   res.render("urls_show", data);
@@ -48,10 +47,18 @@ app.get('/urls/new', (req, res) => {
   }
 });
 
+app.get('/u/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const date = new Date();
+  const today = date.getDate() + '-' + date.getMonth() + '-' + date.getFullYear();
+  if(!urlDatabase[shortURL]){
+    res.status(404);
+  } else {
+    res.redirect(urlDatabase[shortURL].longURL);
+  }
+});
 
-// app.get("/hello", (req, res) => {
-//   res.end("<html><body>Hello <b>World</b></body></html>\n");
-// });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
