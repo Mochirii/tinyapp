@@ -1,0 +1,30 @@
+<html lang="en">
+
+<head>
+  <title>TinyApp</title>
+</head>
+
+<body>
+  <% include ./partials/_header %>
+    <h3>Welcome to the Index Page of Tiny App</h3>
+
+    <table border="2" width="2">
+      <% for(var key in urlDatabase) { %>
+        <tr>
+          <td>
+            <%= key %>
+          </td>
+          <td>
+            <%= urlDatabase[key] %>
+          </td>
+        </tr>
+
+        <% } %>
+
+
+    </table>
+    <br>
+    <a href="/">Create New Short URL</a>
+</body>
+
+</html>
