@@ -3,28 +3,21 @@
 <head>
   <title>TinyApp</title>
 </head>
-
+<% include ./partials/_header %>
 <body>
-  <% include ./partials/_header %>
+
     <h3>Welcome to the Index Page of Tiny App</h3>
 
     <table border="2" width="2">
       <% for(var key in urlDatabase) { %>
-        <tr>
-          <td>
-            <%= key %>
-          </td>
-          <td>
-            <%= urlDatabase[key] %>
-          </td>
-        </tr>
-
-        <% } %>
-
-
-    </table>
-    <br>
-    <a href="/">Create New Short URL</a>
+        <li>
+            <%= key %> : <%= urlDatabase[key] %>
+            <form method="POST" action="/urls/<%= key%>/delete">
+              <a href="/urls/<%= key %>">Edit</a>
+              <button> Delete </button>
+            </form>
+          </li>
+          <% } %>
 </body>
 
 </html>

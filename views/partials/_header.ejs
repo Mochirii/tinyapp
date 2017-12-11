@@ -1,1 +1,11 @@
-<h1>Tiny URL APP</h1>
+<header>
+  <% if (user !== undefined) { %>
+    <%= user.email %>
+    <form action="/logout" method="POST">
+      <input type="Submit" value="Logout">
+    </form>
+  <% } else{ %>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+  <% } %>
+</header>
