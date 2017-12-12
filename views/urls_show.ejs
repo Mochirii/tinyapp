@@ -5,10 +5,17 @@
 </head>
 <%- include partials/_header %>
 <body>
-      <%= longURL %> : <%= shortURL %>
-        <form action="/urls/<%= shortURL%>" method="POST" style="margin:150px;">
-          <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
-          <input type="submit" value="Update">
-        </form>
+  <h1>Urls</h1>
+  <p>Your shortened URL is: <a href="http://localhost:<%=PORT%>/u/<%= shortURLKey %>">http://localhost:<%=PORT%>/u/<%= shortURLKey %></a></p>
+  <p>Your original URL is: <a href=<%= longURL.longURL %>><%=longURL.longURL%></a></p>
+
+  <form method="POST" action="/urls/<%= shortURLKey %>/update">
+    <label for="longURL">Long URL</label>
+    <input type="text" name="longURL"/>
+    <input type="submit" value="Update">
+  </form>
+  <a href = "/urls">Edit Current Links</a>
+  <div></div>
+  <button onclick="location.href='/urls/new'" type="button" class="button-new">Create another TinyApp Link!</button>
 </body>
 </html>

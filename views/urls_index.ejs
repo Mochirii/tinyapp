@@ -1,23 +1,28 @@
-<html lang="en">
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>TinyApp</title>
+  </head>
 
-<head>
-  <title>TinyApp</title>
-</head>
-<% include ./partials/_header %>
-<body>
-
-    <h3>Welcome to the Index Page of Tiny App</h3>
-
-    <table border="2" width="2">
-      <% for(var key in urlDatabase) { %>
-        <li>
-            <%= key %> : <%= urlDatabase[key] %>
-            <form method="POST" action="/urls/<%= key%>/delete">
-              <a href="/urls/<%= key %>">Edit</a>
-              <button> Delete </button>
+  <body>
+    <header>
+      <% include partials/_header %>
+    </header>
+    <ul>
+      <div class = "url-table">
+        <% for(var url in urls) { %>             
+          <li>
+            <form method="POST" action="/urls/<%= url %>/delete">
+               <p><%= url %> - <%= urls[url].longURL %> </p>
+               <a href="/urls/<%= url %>">Update</a>
+              <input type="submit" value="DELETE"> 
             </form>
           </li>
-          <% } %>
-</body>
+        <% }; %>
+      </ul>
+    </div>
 
+    <a href = "/urls/new">Create a TinyApp Link!</a>
+  </body>
 </html>

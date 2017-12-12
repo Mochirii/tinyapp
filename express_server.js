@@ -5,28 +5,17 @@ const PORT = process.env.PORT || 8080;
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 
-app.use(cookieSession({
-  name: 'cookiesession',
-  keys: ['session']
-}));
+app.use(
+  cookieSession({
+    name: "cookiesession",
+    keys: ["session"]
+  })
+);
 
+// settings
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-
-
-const urlDatabase = {
-  b2xVn2: {
-    id: "userID1",
-    longURL: "http://www.lighthouselabs.ca"
-  },
-
-  "9sm5xK": {
-    id: "userID2",
-    longURL: "http://www.google.com"
-  }
-};
-
 const users = {
   userID1: {
     id: "userID1",
@@ -37,6 +26,18 @@ const users = {
     id: "userID1",
     email: "jess@example.com",
     password: "dogsrgreat"
+  }
+};
+
+const urlDatabase = {
+  b2xVn2: {
+    id: "userID1",
+    longURL: "http://www.lighthouselabs.ca"
+  },
+
+  "9sm5xK": {
+    id: "userID2",
+    longURL: "http://www.google.com"
   }
 };
 
@@ -81,24 +82,43 @@ function idCheck(email) {
 }
 
 function giveHashed(email) {
-  let equalsEmail = "";
+  let equalsEmail = '';
   for (let randomised in users) {
     if (users[randomised].email === email) {
-      equalsEmail += users[randomised].hashedPassword.toString();
+      equalsEmail += users[randomised].hashedPassword;
     }
   }
   return equalsEmail;
 }
 
-app.use((req, res, next) => {                        
+function registerRouteRes(email, password, randomId, res, req) {
+  if (email === "" || password === "" ) {
+    res.status(400).send("Fields can't be blank."); 
+  } else if (emailCheck(email)) {
+    res.status(400).send("Email must be unique.");   
+  } else {
+    let newUser = {
+      id: randomId,
+      email: email,
+      hashedPassword: password
+    };
+    
+    users[randomId] = newUser;
+    req.session.user_id = randomId;
+    res.redirect("urls");
+  }
+};
+
+//middleware
+
+app.use((req, res, next) => {
   const user = users[req.session.user_id];
   res.locals.user = user;
 
   return next();
-}); 
+});
 
-/* GETS */
-
+// routes
 
 app.get("/", (req, res) => {
   const data = { urls: urlDatabase };
@@ -109,6 +129,10 @@ app.get("/", (req, res) => {
   } else {
     res.redirect("register");
   }
+});
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
 });
 
 app.get("/register", (req, res) => {
@@ -142,68 +166,71 @@ app.get("/urls", (req, res) => {
   }
 });
 
+
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
-  const shortURLS = req.params.id;
-  const longURL = urlDatabase[shortURLS];
+  const shortURLKey = req.params.id;
+  const longURL = urlDatabase[shortURLKey];
   if (longURL) {
-    let data = {
-      "shortURLS": shortURLS, 
-      "longURL": longURL, 
-      "PORT": PORT
+    const data = {
+      shortURLKey: shortURLKey,
+      longURL: longURL,
+      PORT: PORT
     };
+
     if (users[user_id]) {
       return res.render("urls_show", data);
-    } else {
-      return res
-        .status(401)
-        .send("You do not have permission to access this resource");
-    }
+    } 
   }
   return res.status(404).send("This page does not exist");
 });
 
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
-  
-    if (users[user_id]) {
-      res.render("urls_new");
-    } else { 
-      res.redirect("/login");
-    };
-  });
 
-app.get("/u/:shortURL", (req, res) => {
-  let shortURLS = req.params.shortURL;
-  if (urlDatabase[shortURLS]) {
-    let matchedLongURL = urlDatabase[shortURLS].longURL;
-    res.redirect(matchedLongURL);
+  if (users[user_id]) {
+    res.render("urls_new");
   } else {
-      return res.status(404).send("This page does not exist")
-    } 
+    res.redirect("/login");
+  }
 });
 
-/* POSTS */
-
+app.get("/u/:shortURL", (req, res) => {
+  let shortURLKey = req.params.shortURL;
+  if (urlDatabase[shortURLKey]) {
+    let equalsLongURL = urlDatabase[shortURLKey].longURL;
+    res.redirect(equalsLongURL);
+  } 
+});
 
 app.post("/login", (req, res) => {
-  const userId = idCheck(email);
-  const hash = giveHashed(email);
-  const verifyloginCredentials = bcrypt.compareSync(password, hash);
+  
+  const email = req.body.email;
+  const password = req.body.password;
 
-  if (userId && verifyloginCredentials) {
-    req.session.user_id = userId;
-    return res.redirect("urls");
-  } 
+  if (email === "" || password === "" ) {
+    return res.status(400).send("Fields can't be blank."); 
+  } else {
+    
+    const userId = idCheck(email);
+    const hash = giveHashed(email);
+    const verifyloginCredentials = bcrypt.compareSync(password, hash);
 
+    if (userId && verifyloginCredentials) { 
+      req.session.user_id = userId;
+      return res.redirect("urls");
+    } 
+  };
 });
 
 app.post("/register", (req, res) => {
-  const email = req.body.email.trim();
-  const password = req.body.password.trim();
+  const email = req.body.email;
+  const password = req.body.password;
   let hashedPassword = bcrypt.hashSync(password, 10);
   const randomised = generateRandomString();
   const user_id = req.session.user_id;
+
+  registerRouteRes(email, hashedPassword, randomised, res, req);
 
 });
 
@@ -216,24 +243,32 @@ app.post("/urls", (req, res) => {
   res.redirect("urls/" + shortURL);
 });
 
+app.post("/urls/:id/update", (req, res) => {
+  const user_id = req.session.user_id;
+  const shortURLKey = req.params.id;
+  const longURL = req.body.longURL;
 
-app.post("/urls/logout", (req, res) => {
+
+  if (user_id === urlDatabase[shortURLKey].userId) {
+    urlDatabase[shortURLKey] = { userId: user_id, longURL: longURL };  
+    res.redirect("/urls/" + shortURLKey);
+  } 
+});
+
+
+app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   const user_id = req.session.user_id;
-  const shortURLS = req.params.id;
+  const shortURLKey = req.params.id;
 
-  if (user_id === urlDatabase[shortURLS].userId) {
-    delete urlDatabase[shortURLS];
+  if (user_id === urlDatabase[shortURLKey].userId) {
+    delete urlDatabase[shortURLKey];
     res.redirect("/urls");
-  } else {
-    return res
-      .status(401)
-      .send("You do not have permission to access this resource");
-  }
+  } 
 });
 
 app.listen(PORT, () => {
