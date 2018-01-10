@@ -67,10 +67,9 @@ function emailCheck(email) {
   for (let randomised in users) {
     if (users[randomised].email === email) {
       return email;
-    } else {
-      return false;
-    }
+    } 
   }
+  return false
 }
 
 function idCheck(email) {
