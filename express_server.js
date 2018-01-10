@@ -37,7 +37,7 @@ const users = {
   "userID1": {
     id: "userID1",
     email: "test@example.com",
-    password: "test"
+    hashedPassword: bcrypt.hashSync("test", 10),
   }
   
 };
@@ -75,9 +75,11 @@ function emailCheck(email) {
 function idCheck(email) {
   for (let randomised in users) {
     if (users[randomised].email === email) {
+
       return users[randomised].id;
     }
   }
+  return true
 }
 
 function giveHashed(email) {
@@ -120,8 +122,8 @@ app.use((req, res, next) => {
 // routes
 
 app.get("/", (req, res) => {
-  const data = { urls: urlDatabase };
   const user_id = req.session.user_id;
+  const data = { urls: getURLs(user_id) };
 
   if (users[user_id]) {
     res.render("urls_index", data);
@@ -207,11 +209,9 @@ app.post("/login", (req, res) => {
   
   const email = req.body.email;
   const password = req.body.password;
-
   if (email === "" || password === "" ) {
     return res.status(400).send("Fields can't be blank."); 
   } else {
-    
     const userId = idCheck(email);
     const hash = giveHashed(email);
     const verifyloginCredentials = bcrypt.compareSync(password, hash);
@@ -240,7 +240,13 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const user_id = req.session.user_id;
 
-  urlDatabase[shortURL] = { userId: user_id, longURL: longURL };
+  if(longURL.indexOf('http://') === -1){
+    userURL = 'http://' + longURL;
+    urlDatabase[shortURL] = { userId: user_id, longURL: userURL };
+  } else {
+    urlDatabase[shortURL] = { userId: user_id, longURL: longURL };
+  }
+
   res.redirect("urls/" + shortURL);
 });
 

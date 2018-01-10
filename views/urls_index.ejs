@@ -11,7 +11,7 @@
     </header>
     <ul>
       <div class = "url-table">
-        <% for(var url in urls) { %>             
+        <% for(var url in urls) { %>
           <li>
             <form method="POST" action="/urls/<%= url %>/delete">
                <p><%= url %> - <%= urls[url].longURL %> </p>
@@ -19,7 +19,8 @@
               <input type="submit" value="DELETE"> 
             </form>
           </li>
-        <% }; %>
+          <% }; %>
+
       </ul>
     </div>
 
